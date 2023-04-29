@@ -29,3 +29,9 @@ pub fn orange() -> Color {
     // #FDA769
     Color::rgb_u8(253, 167, 105)
 }
+
+#[allow(unused)]
+pub fn bright() -> Color {
+    // #F5EAEA
+    Color::rgb_u8(245, 234, 234)
+}

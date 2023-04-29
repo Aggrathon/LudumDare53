@@ -1,9 +1,7 @@
-use std::f32::consts::PI;
-
+use crate::colors;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-
-use crate::colors;
+use std::f32::consts::PI;
 
 #[derive(Default, Component, Debug)]
 pub struct Tile {

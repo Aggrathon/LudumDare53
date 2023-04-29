@@ -1,7 +1,6 @@
+use crate::colors;
 use bevy::core_pipeline::clear_color::ClearColorConfig;
 use bevy::prelude::*;
-
-use crate::colors;
 
 pub struct CameraPlugin;
 

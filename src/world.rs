@@ -1,7 +1,6 @@
+use crate::tile::{self, Border, Tile, TileServer};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-
-use crate::tile::{self, Border, Tile, TileServer};
 
 #[derive(Default, Resource)]
 pub struct WorldMap {
@@ -77,44 +76,4 @@ impl WorldMap {
         tr.rotate_z(rot);
         s.color = Color::WHITE;
     }
-}
-
-pub struct WorldPlugin;
-
-impl Plugin for WorldPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_resource::<WorldMap>().add_startup_systems(
-            (
-                level0,
-                apply_system_buffers,
-                WorldMap::apply_borders,
-                place_tile,
-            )
-                .chain(),
-        );
-    }
-}
-
-fn level0(mut cmds: Commands, mut wm: ResMut<WorldMap>) {
-    wm.create_tile(-1, 1, &mut cmds);
-    wm.create_tile(-1, 0, &mut cmds);
-    wm.create_tile(0, 0, &mut cmds);
-    wm.create_tile(1, 0, &mut cmds);
-    wm.create_tile(1, -1, &mut cmds);
-
-    for x in -4..=4 {
-        for y in 2..5 {
-            wm.create_tile(x, y, &mut cmds);
-        }
-    }
-    wm.remove_tile(2, 3, &mut cmds);
-}
-
-fn place_tile(
-    wm: Res<WorldMap>,
-    ts: Res<TileServer>,
-    query: Query<(&mut Tile, &mut Sprite, &mut Transform, &mut Handle<Image>)>,
-) {
-    let tile = Tile::create("lr");
-    wm.set_tile(0, 0, tile, ts, query);
 }

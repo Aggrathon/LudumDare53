@@ -1,3 +1,4 @@
+use crate::camera::ease_camera_to;
 use crate::state::GameState;
 use crate::tile::{Tile, TileServer};
 use crate::world::WorldMap;
@@ -16,7 +17,8 @@ impl Plugin for Level0Plugin {
             )
                 .chain()
                 .in_schedule(OnEnter(GameState::Level0)),
-        );
+        )
+        .add_system(move_camera.in_schedule(OnEnter(GameState::Level0)));
     }
 }
 
@@ -42,4 +44,8 @@ fn place_tile(
 ) {
     let tile = Tile::create("lr");
     wm.set_tile(0, 0, tile, ts, query);
+}
+
+fn move_camera(commands: Commands, query: Query<(&Transform, Entity), With<Camera>>) {
+    ease_camera_to(commands, query, Vec3::new(2., 4., 0.));
 }

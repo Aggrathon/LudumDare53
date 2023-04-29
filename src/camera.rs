@@ -1,6 +1,9 @@
+use std::time::Duration;
+
 use crate::colors;
 use bevy::core_pipeline::clear_color::ClearColorConfig;
 use bevy::prelude::*;
+use bevy_easings::*;
 
 pub struct CameraPlugin;
 
@@ -24,4 +27,20 @@ fn spawn_camera(mut cmds: Commands) {
         },
         ..default()
     });
+}
+
+pub fn ease_camera_to(
+    mut commands: Commands,
+    query: Query<(&Transform, Entity), With<Camera>>,
+    target: Vec3,
+) {
+    for (tr, e) in &query {
+        commands.entity(e).insert(tr.ease_to(
+            tr.with_translation(target),
+            EaseFunction::QuadraticInOut,
+            EasingType::Once {
+                duration: Duration::from_millis(500),
+            },
+        ));
+    }
 }

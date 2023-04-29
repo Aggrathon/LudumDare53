@@ -1,4 +1,5 @@
 mod level_0;
+mod ui;
 
 use crate::state::GameState;
 use crate::tile::Tile;
@@ -14,38 +15,33 @@ impl Plugin for LevelPlugin {
 
         for d in GameState::variants() {
             if d != GameState::MainMenu {
-                app.add_system(key_system.in_set(OnUpdate(d)))
-                    .add_system(clear_system.in_schedule(OnExit(d)));
+                app.add_systems(
+                    (
+                        ui::key_system,
+                        ui::button_menu,
+                        ui::button_next,
+                        ui::button_restart,
+                        ui::button_rotate,
+                    )
+                        .in_set(OnUpdate(d)),
+                )
+                .add_system(clear_system.in_schedule(OnExit(d)))
+                .add_system(ui::setup_gui.in_schedule(OnEnter(d)));
             }
         }
-    }
-}
-
-fn key_system(
-    mut keys: ResMut<Input<KeyCode>>,
-    mut next_state: ResMut<NextState<GameState>>,
-    state: Res<State<GameState>>,
-) {
-    if keys.just_pressed(KeyCode::R) {
-        keys.reset(KeyCode::R);
-        next_state.set(state.0);
-    }
-    if keys.just_pressed(KeyCode::N) {
-        keys.reset(KeyCode::N);
-        next_state.set(state.0.next_level());
-    }
-    if keys.just_pressed(KeyCode::Escape) {
-        keys.reset(KeyCode::Escape);
-        next_state.set(GameState::MainMenu);
     }
 }
 
 fn clear_system(
     mut commands: Commands,
     tiles: Query<Entity, With<Tile>>,
+    ui: Query<Entity, With<ui::GameUI>>,
     mut camera: Query<&mut Transform, With<Camera>>,
 ) {
     for entity in &tiles {
+        commands.entity(entity).despawn_recursive();
+    }
+    for entity in &ui {
         commands.entity(entity).despawn_recursive();
     }
     for mut tr in &mut camera {

@@ -1,16 +1,20 @@
+use std::f32::consts::PI;
+
 use bevy::prelude::*;
+use bevy::utils::HashMap;
 
 use crate::colors;
 
-#[derive(Default, Component)]
+#[derive(Default, Component, Debug)]
 pub struct Tile {
+    pub placed: bool,
     pub top: Border,
     pub right: Border,
     pub bottom: Border,
     pub left: Border,
 }
 
-#[derive(Default, PartialEq, Clone, Copy)]
+#[derive(Default, PartialEq, Clone, Copy, Debug)]
 pub enum Border {
     #[default]
     Any,
@@ -26,8 +30,18 @@ impl Tile {
             || self.left == Border::Road
     }
 
+    pub fn empty() -> Self {
+        Self {
+            placed: false,
+            top: Border::Empty,
+            right: Border::Empty,
+            bottom: Border::Empty,
+            left: Border::Empty,
+        }
+    }
+
     pub fn create(pattern: &'static str) -> Self {
-        let mut new = Self::default();
+        let mut new = Self::empty();
         for v in pattern.as_bytes() {
             match v {
                 b't' => new.top = Border::Road,
@@ -39,35 +53,67 @@ impl Tile {
         }
         new
     }
-}
 
-#[derive(Default, Clone, Copy, Component, Resource)]
-pub struct Network(u16);
-
-impl Network {
-    pub fn inc(&mut self) -> Network {
-        self.0 += 1;
-        *self
-    }
-
-    pub fn join(&mut self, other: &Network) -> bool {
-        if other.0 > self.0 {
-            self.0 = other.0;
-            true
-        } else {
-            false
+    pub fn rotate270(&self) -> Self {
+        Self {
+            placed: self.placed,
+            top: self.right,
+            right: self.bottom,
+            bottom: self.left,
+            left: self.top,
         }
     }
 
-    pub fn is_part(&self) -> bool {
-        self.0 > 0
+    pub fn rotate90(&self) -> Self {
+        Self {
+            placed: self.placed,
+            top: self.left,
+            right: self.top,
+            bottom: self.right,
+            left: self.bottom,
+        }
+    }
+
+    pub fn rotate180(&self) -> Self {
+        Self {
+            placed: self.placed,
+            top: self.bottom,
+            right: self.left,
+            bottom: self.top,
+            left: self.right,
+        }
+    }
+
+    pub fn placeable(&self, other: &Self) -> bool {
+        !other.placed
+            && (other.top == Border::Any || self.top == other.top)
+            && (other.right == Border::Any || self.right == other.right)
+            && (other.bottom == Border::Any || self.bottom == other.bottom)
+            && (other.left == Border::Any || self.left == other.left)
+    }
+}
+
+impl From<&Tile> for u32 {
+    fn from(value: &Tile) -> Self {
+        (value.top as u32)
+            + (value.right as u32) * (1 << 4)
+            + (value.bottom as u32) * (1 << 8)
+            + (value.left as u32) * (1 << 16)
+    }
+}
+
+impl From<Tile> for u32 {
+    fn from(value: Tile) -> Self {
+        (value.top as u32)
+            + (value.right as u32) * (1 << 4)
+            + (value.bottom as u32) * (1 << 8)
+            + (value.left as u32) * (1 << 16)
     }
 }
 
 #[derive(Bundle)]
 pub struct TileBundle {
     tile: Tile,
-    network: Network,
     sprite: SpriteBundle,
 }
 
@@ -83,12 +129,55 @@ impl TileBundle {
         };
         Self {
             tile: Tile::default(),
-            network: Network::default(),
             sprite: SpriteBundle {
                 sprite,
                 transform,
                 ..default()
             },
         }
+    }
+}
+
+#[derive(Resource, Default)]
+pub struct TileServer(HashMap<u32, Handle<Image>>);
+
+impl TileServer {
+    pub fn find_texture(&self, tile: &Tile) -> (&Handle<Image>, f32) {
+        if let Some(s) = self.0.get(&tile.into()) {
+            return (s, 0.);
+        }
+        if let Some(s) = self.0.get(&tile.rotate90().into()) {
+            return (s, PI * 0.5);
+        }
+        if let Some(s) = self.0.get(&tile.rotate180().into()) {
+            return (s, PI);
+        }
+        if let Some(s) = self.0.get(&tile.rotate270().into()) {
+            return (s, -PI * 0.5);
+        }
+        panic!("Could not find a tile: {:?}", tile);
+    }
+
+    pub fn load_assets(asset_server: Res<AssetServer>, mut ts: ResMut<TileServer>) {
+        ts.0.insert(Tile::create("t").into(), asset_server.load("tile_t.png"));
+        ts.0.insert(Tile::create("tr").into(), asset_server.load("tile_tr.png"));
+        ts.0.insert(Tile::create("tb").into(), asset_server.load("tile_tb.png"));
+        ts.0.insert(
+            Tile::create("trb").into(),
+            asset_server.load("tile_trb.png"),
+        );
+        ts.0.insert(
+            Tile::create("trbl").into(),
+            asset_server.load("tile_trbl.png"),
+        );
+    }
+}
+
+pub struct TilePlugin;
+
+impl Plugin for TilePlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<TileServer>()
+            .add_startup_system(TileServer::load_assets);
     }
 }

@@ -2,6 +2,8 @@ mod level0;
 mod level1;
 mod level2;
 mod level3;
+mod level4;
+mod level5;
 mod level_test;
 mod ui;
 use crate::camera::move_camera_to;
@@ -16,11 +18,13 @@ pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugin(level_test::LevelPlugin)
-            .add_plugin(level0::LevelPlugin)
+        app.add_plugin(level0::LevelPlugin)
             .add_plugin(level1::LevelPlugin)
             .add_plugin(level2::LevelPlugin)
-            .add_plugin(level3::LevelPlugin);
+            .add_plugin(level3::LevelPlugin)
+            .add_plugin(level4::LevelPlugin)
+            .add_plugin(level5::LevelPlugin)
+            .add_plugin(level_test::LevelPlugin);
 
         for d in GameState::variants() {
             if d != GameState::MainMenu {

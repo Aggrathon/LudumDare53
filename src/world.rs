@@ -77,8 +77,15 @@ fn place_tile(
             let entity = wm.map.get(&(*x, *y)).expect("Tile does not exist");
             let (mut t, mut s, mut tr, mut h) =
                 query.get_mut(*entity).expect("Could not find tile entity");
-            assert!(tile.placeable(&t), "Could not place tile");
-            let (img, rot) = ts.find_texture(&tile);
+            assert!(
+                tile.placeable(&t),
+                "Could not place tile x={} y={} tile={:?} t={:?}",
+                x,
+                y,
+                tile,
+                &t
+            );
+            let (img, rot) = ts.find_texture(tile);
             *t = tile.clone();
             t.placed = true;
             *h = img;

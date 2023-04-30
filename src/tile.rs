@@ -1,6 +1,7 @@
 use crate::camera::cursor_to_world;
 use crate::colors;
 use crate::deck::Deck;
+use crate::world::PlaceTile;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use std::f32::consts::PI;
@@ -167,14 +168,15 @@ impl SelectTileBundle {
 }
 
 fn update_select_tile(
-    deck: Res<Deck>,
+    mut deck: ResMut<Deck>,
     mut query: Query<(&mut Sprite, &Parent, &GlobalTransform), With<SelectTile>>,
     tile_query: Query<&Tile>,
+    input: Res<Input<MouseButton>>,
     windows: Query<&Window>,
     cameras: Query<(&Camera, &GlobalTransform), With<Camera>>,
+    mut event: EventWriter<PlaceTile>,
 ) {
     let normal = colors::yellow();
-    let hover = colors::orange();
     let disabled = colors::dark_green();
     if let Some(tile) = deck.get_top() {
         let cursor = cursor_to_world(windows, cameras).unwrap_or(Vec2 {
@@ -184,8 +186,20 @@ fn update_select_tile(
         for (mut s, p, tr) in query.iter_mut() {
             let t = tile_query.get(p.get()).expect("Could not find parent");
             if tile.placeable(t) {
-                if (tr.translation().truncate() - cursor).abs().max_element() < 0.5 {
-                    s.color = hover;
+                let pos = tr.translation().truncate();
+                if (pos - cursor).abs().max_element() < 0.5 {
+                    if input.pressed(MouseButton::Left) {
+                        s.color = colors::dark();
+                    } else {
+                        s.color = colors::orange();
+                    }
+                    if input.just_released(MouseButton::Left) {
+                        let ipos = pos.as_ivec2();
+                        event.send(PlaceTile::new(ipos.x, ipos.y, tile.clone()));
+                        return {
+                            deck.next();
+                        };
+                    }
                 } else {
                     s.color = normal;
                 }

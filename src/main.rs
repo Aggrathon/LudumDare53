@@ -15,7 +15,13 @@ use bevy_easings::EasingsPlugin;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Tiler's Trucking Co   --   Aggrathon   --   Ludum Dare 53".to_string(),
+                ..default()
+            }),
+            ..default()
+        }))
         .add_plugin(EasingsPlugin)
         .add_plugin(camera::CameraPlugin)
         .add_plugin(tile::TilePlugin)

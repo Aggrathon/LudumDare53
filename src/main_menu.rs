@@ -56,7 +56,7 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                     ..default()
                 })
                 .with_children(|parent| {
-                    parent.spawn(title_text("Tilers Trucking Co", font.clone()));
+                    parent.spawn(title_text("Tiler's Trucking Co", font.clone()));
                     parent.spawn((PlayButton, big_button())).with_children(|p| {
                         p.spawn(big_button_text("Play", font));
                     });

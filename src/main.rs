@@ -11,6 +11,7 @@ mod ui;
 mod world;
 
 use bevy::prelude::*;
+use bevy::window::WindowResolution;
 use bevy_easings::EasingsPlugin;
 
 fn main() {
@@ -18,6 +19,7 @@ fn main() {
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Tiler's Trucking Co   --   Aggrathon   --   Ludum Dare 53".to_string(),
+                resolution: WindowResolution::new(1280., 800.),
                 ..default()
             }),
             ..default()

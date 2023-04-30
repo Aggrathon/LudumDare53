@@ -56,6 +56,7 @@ pub fn update_tile(
                 let (img2, rot) = ts.find_texture(tile);
                 img.texture = img2;
                 tr.rotation = Quat::from_rotation_z(rot);
+                // TODO sometimes the rotation is incorrect
             }
         }
     }
@@ -94,7 +95,7 @@ pub fn on_rotate(
 
 fn next_tile(mut deck: ResMut<Deck>, mut tile_placed: EventWriter<PlaceTile>) {
     deck.next();
-    tile_placed.send(PlaceTile(None));
+    tile_placed.send(PlaceTile::dummy());
 }
 
 pub fn key_system(

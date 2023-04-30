@@ -1,4 +1,6 @@
+use crate::camera::move_camera_to;
 use crate::deck::Deck;
+use crate::objective::{setup_end_tile, setup_start_tile};
 use crate::state::GameState;
 use crate::tile::Tile;
 use crate::world::{PlaceTile, WorldMap};
@@ -15,7 +17,7 @@ impl Plugin for Level0Plugin {
                     setup_board,
                     apply_system_buffers,
                     WorldMap::apply_borders,
-                    place_tile,
+                    place_tiles,
                 )
                     .chain()
                     .in_schedule(OnEnter(GameState::Level0)),
@@ -38,15 +40,31 @@ fn setup_board(mut cmds: Commands, mut wm: ResMut<WorldMap>) {
     wm.remove_tile(2, 3, &mut cmds);
 }
 
-fn place_tile(mut tile_placed: EventWriter<PlaceTile>) {
-    let tile = Tile::create("lr");
-    tile_placed.send(PlaceTile::new(0, 0, tile));
+fn place_tiles(
+    mut cmds: Commands,
+    asset_server: Res<AssetServer>,
+    mut tile_placed: EventWriter<PlaceTile>,
+) {
+    setup_start_tile(
+        0,
+        2,
+        Tile::create("trl"),
+        &mut cmds,
+        &asset_server,
+        &mut tile_placed,
+    );
+    setup_end_tile(
+        -3,
+        4,
+        Tile::create("b"),
+        &mut cmds,
+        &asset_server,
+        &mut tile_placed,
+    );
 }
 
-fn move_camera(mut query: Query<&mut Transform, With<Camera>>) {
-    for mut tr in &mut query {
-        tr.translation = Vec3::new(2., 4., 0.);
-    }
+fn move_camera(query: Query<&mut Transform, With<Camera>>) {
+    move_camera_to(query, Vec2::new(2., 4.));
 }
 
 fn setup_deck(mut deck: ResMut<Deck>) {

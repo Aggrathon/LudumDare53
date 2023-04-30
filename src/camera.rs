@@ -27,6 +27,7 @@ fn spawn_camera(mut cmds: Commands) {
             },
             ..default()
         },
+        transform: Transform::from_xyz(0., 0., 10.),
         ..default()
     });
 }
@@ -34,17 +35,21 @@ fn spawn_camera(mut cmds: Commands) {
 pub fn ease_camera_to(
     mut commands: Commands,
     query: Query<(&Transform, Entity), With<Camera>>,
-    target: Vec3,
+    target: Vec2,
 ) {
-    for (tr, e) in &query {
-        commands.entity(e).insert(tr.ease_to(
-            tr.with_translation(target),
-            EaseFunction::QuadraticInOut,
-            EasingType::Once {
-                duration: Duration::from_millis(500),
-            },
-        ));
-    }
+    let (tr, e) = query.single();
+    commands.entity(e).insert(tr.ease_to(
+        tr.with_translation(Vec3::new(target.x, target.y, 10.)),
+        EaseFunction::QuadraticInOut,
+        EasingType::Once {
+            duration: Duration::from_millis(500),
+        },
+    ));
+}
+
+pub fn move_camera_to(mut query: Query<&mut Transform, With<Camera>>, target: Vec2) {
+    let mut camera = query.single_mut();
+    camera.translation = Vec3::new(target.x, target.y, 10.);
 }
 
 fn follow_placed(
@@ -52,18 +57,9 @@ fn follow_placed(
     mut event: EventReader<PlaceTile>,
     query: Query<(&Transform, Entity), With<Camera>>,
 ) {
-    for ev in event.iter() {
-        if let Some((x, y, _)) = &ev.0 {
-            ease_camera_to(
-                commands,
-                query,
-                Vec3 {
-                    x: *x as f32,
-                    y: *y as f32,
-                    z: 0.,
-                },
-            );
-            break;
+    if let Some(ev) = event.iter().next() {
+        if !ev.silent {
+            ease_camera_to(commands, query, Vec2::new(ev.x as f32, ev.y as f32));
         }
     }
 }

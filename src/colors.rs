@@ -35,3 +35,9 @@ pub fn bright() -> Color {
     // #F5EAEA
     Color::rgb_u8(245, 234, 234)
 }
+
+#[allow(unused)]
+pub fn blue() -> Color {
+    // #6DA9E4
+    Color::rgb_u8(109, 169, 228)
+}

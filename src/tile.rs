@@ -155,12 +155,12 @@ impl SelectTileBundle {
             custom_size: Some(Vec2 { x: 1., y: 1. }),
             ..default()
         };
-        let texture = asset_server.load("plus.png");
         Self {
             tile: SelectTile::default(),
             sprite: SpriteBundle {
                 sprite,
-                texture,
+                texture: asset_server.load("plus.png"),
+                transform: Transform::from_translation(Vec3::new(0., 0., 2.)),
                 ..default()
             },
         }

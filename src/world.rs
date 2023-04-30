@@ -13,11 +13,39 @@ impl Plugin for WorldPlugin {
     }
 }
 
-pub struct PlaceTile(pub Option<(i32, i32, Tile)>);
+pub struct PlaceTile {
+    pub x: i32,
+    pub y: i32,
+    pub tile: Tile,
+    pub silent: bool,
+}
 
 impl PlaceTile {
     pub fn new(x: i32, y: i32, tile: Tile) -> Self {
-        Self(Some((x, y, tile)))
+        Self {
+            x,
+            y,
+            tile,
+            silent: false,
+        }
+    }
+
+    pub fn new_slient(x: i32, y: i32, tile: Tile) -> Self {
+        Self {
+            x,
+            y,
+            tile,
+            silent: true,
+        }
+    }
+
+    pub fn dummy() -> Self {
+        Self {
+            x: 0,
+            y: i32::MAX,
+            silent: true,
+            tile: default(),
+        }
     }
 }
 
@@ -73,25 +101,27 @@ fn place_tile(
     mut query: Query<(&mut Tile, &mut Sprite, &mut Transform, &mut Handle<Image>)>,
 ) {
     for ev in event.iter() {
-        if let Some((x, y, tile)) = &ev.0 {
-            let entity = wm.map.get(&(*x, *y)).expect("Tile does not exist");
-            let (mut t, mut s, mut tr, mut h) =
-                query.get_mut(*entity).expect("Could not find tile entity");
-            assert!(
-                tile.placeable(&t),
-                "Could not place tile x={} y={} tile={:?} t={:?}",
-                x,
-                y,
-                tile,
-                &t
-            );
-            let (img, rot) = ts.find_texture(tile);
-            *t = tile.clone();
-            t.placed = true;
-            *h = img;
-            tr.rotate_z(rot);
-            s.color = Color::WHITE;
+        let entity = wm.map.get(&(ev.x, ev.y));
+        if ev.silent && entity.is_none() {
+            continue;
         }
+        let entity = entity.expect("Tile does not exist");
+        let (mut t, mut s, mut tr, mut h) =
+            query.get_mut(*entity).expect("Could not find tile entity");
+        assert!(
+            ev.tile.placeable(&t),
+            "Could not place tile x={} y={} tile={:?} t={:?}",
+            ev.x,
+            ev.y,
+            ev.tile,
+            &t
+        );
+        let (img, rot) = ts.find_texture(&ev.tile);
+        *t = ev.tile.clone();
+        t.placed = true;
+        *h = img;
+        tr.rotate_z(rot);
+        s.color = Color::WHITE;
     }
 }
 
@@ -104,49 +134,52 @@ fn handle_open_tiles(
     asset_server: Res<AssetServer>,
 ) {
     for ev in event.iter() {
-        if let Some((x, y, tile)) = &ev.0 {
-            let entity = wm.map.get(&(*x, *y)).expect("Tile does not exist");
-            if let Some(e) = wm.map.get(&(x + 1, *y)) {
-                let mut t = query.get_mut(*e).expect("Could not find entity");
-                t.left = tile.right;
-                if !t.placed && tile.right == Border::Road {
-                    cmds.entity(*e).with_children(|p| {
-                        p.spawn(SelectTileBundle::new(&asset_server));
-                    });
-                }
+        let (x, y, tile) = (ev.x, ev.y, &ev.tile);
+        let entity = wm.map.get(&(ev.x, ev.y));
+        if ev.silent && entity.is_none() {
+            continue;
+        }
+        let entity = entity.expect("Tile does not exist");
+        if let Some(e) = wm.map.get(&(x + 1, y)) {
+            let mut t = query.get_mut(*e).expect("Could not find entity");
+            t.left = tile.right;
+            if !ev.silent && !t.placed && tile.right == Border::Road {
+                cmds.entity(*e).with_children(|p| {
+                    p.spawn(SelectTileBundle::new(&asset_server));
+                });
             }
-            if let Some(e) = wm.map.get(&(x - 1, *y)) {
-                let mut t = query.get_mut(*e).expect("Could not find entity");
-                t.right = tile.left;
-                if !t.placed && tile.left == Border::Road {
-                    cmds.entity(*e).with_children(|p| {
-                        p.spawn(SelectTileBundle::new(&asset_server));
-                    });
-                }
+        }
+        if let Some(e) = wm.map.get(&(x - 1, y)) {
+            let mut t = query.get_mut(*e).expect("Could not find entity");
+            t.right = tile.left;
+            if !ev.silent && !t.placed && tile.left == Border::Road {
+                cmds.entity(*e).with_children(|p| {
+                    p.spawn(SelectTileBundle::new(&asset_server));
+                });
             }
-            if let Some(e) = wm.map.get(&(*x, y + 1)) {
-                let mut t = query.get_mut(*e).expect("Could not find entity");
-                t.bottom = tile.top;
-                if !t.placed && tile.top == Border::Road {
-                    cmds.entity(*e).with_children(|p| {
-                        p.spawn(SelectTileBundle::new(&asset_server));
-                    });
-                }
+        }
+        if let Some(e) = wm.map.get(&(x, y + 1)) {
+            let mut t = query.get_mut(*e).expect("Could not find entity");
+            t.bottom = tile.top;
+            if !ev.silent && !t.placed && tile.top == Border::Road {
+                cmds.entity(*e).with_children(|p| {
+                    p.spawn(SelectTileBundle::new(&asset_server));
+                });
             }
-            if let Some(e) = wm.map.get(&(*x, y - 1)) {
-                let mut t = query.get_mut(*e).expect("Could not find entity");
-                t.top = tile.bottom;
-                if !t.placed && tile.bottom == Border::Road {
-                    cmds.entity(*e).with_children(|p| {
-                        p.spawn(SelectTileBundle::new(&asset_server));
-                    });
-                }
+        }
+        if let Some(e) = wm.map.get(&(x, y - 1)) {
+            let mut t = query.get_mut(*e).expect("Could not find entity");
+            t.top = tile.bottom;
+            if !ev.silent && !t.placed && tile.bottom == Border::Road {
+                cmds.entity(*e).with_children(|p| {
+                    p.spawn(SelectTileBundle::new(&asset_server));
+                });
             }
-            for (p, e) in &sel_query {
-                if p.get() == *entity {
-                    // cmds.entity(*entity).remove_children(e);
-                    cmds.entity(e).despawn();
-                }
+        }
+        for (p, e) in &sel_query {
+            if p.get() == *entity {
+                // cmds.entity(*entity).remove_children(e);
+                cmds.entity(e).despawn();
             }
         }
     }

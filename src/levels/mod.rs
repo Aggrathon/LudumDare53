@@ -2,6 +2,7 @@ mod level_0;
 mod ui;
 
 use crate::deck::Deck;
+use crate::objective::ObjectiveTile;
 use crate::state::GameState;
 use crate::tile::Tile;
 use crate::world::WorldMap;
@@ -38,12 +39,16 @@ fn clear_system(
     mut commands: Commands,
     tiles: Query<Entity, With<Tile>>,
     ui: Query<Entity, With<ui::GameUI>>,
+    obj: Query<Entity, With<ObjectiveTile>>,
     mut camera: Query<&mut Transform, With<Camera>>,
 ) {
     for entity in &tiles {
         commands.entity(entity).despawn_recursive();
     }
     for entity in &ui {
+        commands.entity(entity).despawn_recursive();
+    }
+    for entity in &obj {
         commands.entity(entity).despawn_recursive();
     }
     for mut tr in &mut camera {

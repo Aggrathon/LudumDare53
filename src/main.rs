@@ -3,6 +3,7 @@ mod colors;
 mod deck;
 mod levels;
 mod main_menu;
+mod objective;
 mod state;
 mod tile;
 mod ui;

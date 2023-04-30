@@ -4,6 +4,8 @@ mod level2;
 mod level3;
 mod level4;
 mod level5;
+mod level6;
+mod level7;
 mod level_test;
 mod ui;
 use crate::camera::move_camera_to;
@@ -24,6 +26,8 @@ impl Plugin for LevelPlugin {
             .add_plugin(level3::LevelPlugin)
             .add_plugin(level4::LevelPlugin)
             .add_plugin(level5::LevelPlugin)
+            .add_plugin(level6::LevelPlugin)
+            .add_plugin(level7::LevelPlugin)
             .add_plugin(level_test::LevelPlugin);
 
         for d in GameState::variants() {

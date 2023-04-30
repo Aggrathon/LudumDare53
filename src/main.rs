@@ -1,3 +1,4 @@
+mod audio;
 mod camera;
 mod colors;
 mod deck;
@@ -23,6 +24,7 @@ fn main() {
         .add_plugin(world::WorldPlugin)
         .add_plugin(objective::ObjectivePlugin)
         .add_state::<state::GameState>()
+        .add_plugin(audio::AudioPlugin)
         .add_plugin(main_menu::MainMenuPlugin)
         .add_plugin(levels::LevelPlugin)
         .run();

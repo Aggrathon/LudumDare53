@@ -1,6 +1,7 @@
 mod level_0;
 mod ui;
 
+use crate::deck::Deck;
 use crate::state::GameState;
 use crate::tile::Tile;
 use crate::world::WorldMap;
@@ -10,23 +11,23 @@ pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.init_resource::<WorldMap>()
-            .add_plugin(level_0::Level0Plugin);
+        app.add_plugin(level_0::Level0Plugin);
 
         for d in GameState::variants() {
             if d != GameState::MainMenu {
-                app.add_systems(
-                    (
-                        ui::key_system,
-                        ui::button_menu,
-                        ui::button_next,
-                        ui::button_restart,
-                        ui::button_rotate,
-                    )
-                        .in_set(OnUpdate(d)),
-                )
-                .add_system(clear_system.in_schedule(OnExit(d)))
-                .add_system(ui::setup_gui.in_schedule(OnEnter(d)));
+                app.add_system(clear_system.in_schedule(OnExit(d)))
+                    .add_system(ui::setup_gui.in_schedule(OnEnter(d)))
+                    .add_systems(
+                        (
+                            ui::key_system,
+                            ui::button_menu,
+                            ui::button_next,
+                            ui::button_restart,
+                            ui::button_rotate,
+                            ui::update_tile,
+                        )
+                            .in_set(OnUpdate(d)),
+                    );
             }
         }
     }
@@ -48,4 +49,5 @@ fn clear_system(
         tr.translation = Vec3::ZERO;
     }
     commands.init_resource::<WorldMap>();
+    commands.init_resource::<Deck>();
 }

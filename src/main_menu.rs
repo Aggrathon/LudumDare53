@@ -21,14 +21,12 @@ struct MainMenu;
 struct PlayButton;
 
 fn button_system(
-    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<PlayButton>)>,
+    interaction_query: Query<&Interaction, (Changed<Interaction>, With<PlayButton>)>,
     mut state: ResMut<NextState<GameState>>,
 ) {
-    for interaction in &mut interaction_query {
-        if let Interaction::Clicked = *interaction {
-            state.set(GameState::Level0);
-        };
-    }
+    if let Ok(Interaction::Clicked) = interaction_query.get_single() {
+        state.set(GameState::Level0);
+    };
 }
 
 fn key_system(mut keys: ResMut<Input<KeyCode>>, mut state: ResMut<NextState<GameState>>) {

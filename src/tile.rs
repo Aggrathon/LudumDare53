@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use bevy::utils::HashMap;
 use std::f32::consts::PI;
 
-#[derive(Default, Component, Debug)]
+#[derive(Default, Component, Debug, Clone)]
 pub struct Tile {
     pub placed: bool,
     pub top: Border,
@@ -19,6 +19,10 @@ pub enum Border {
     Empty,
     Road,
 }
+
+#[derive(Component)]
+#[component(storage = "SparseSet")]
+pub struct OpenTile;
 
 impl Tile {
     pub fn has_road(&self) -> bool {
@@ -140,18 +144,18 @@ impl TileBundle {
 pub struct TileServer(HashMap<u32, Handle<Image>>);
 
 impl TileServer {
-    pub fn find_texture(&self, tile: &Tile) -> (&Handle<Image>, f32) {
+    pub fn find_texture(&self, tile: &Tile) -> (Handle<Image>, f32) {
         if let Some(s) = self.0.get(&tile.into()) {
-            return (s, 0.);
+            return (s.clone(), 0.);
         }
         if let Some(s) = self.0.get(&tile.rotate90().into()) {
-            return (s, PI * 0.5);
+            return (s.clone(), PI * 0.5);
         }
         if let Some(s) = self.0.get(&tile.rotate180().into()) {
-            return (s, PI);
+            return (s.clone(), PI);
         }
         if let Some(s) = self.0.get(&tile.rotate270().into()) {
-            return (s, -PI * 0.5);
+            return (s.clone(), -PI * 0.5);
         }
         panic!("Could not find a tile: {:?}", tile);
     }

@@ -1,6 +1,16 @@
-use crate::tile::{self, Border, Tile, TileServer};
+use crate::tile::{self, Border, OpenTile, Tile, TileServer};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
+
+pub struct WorldPlugin;
+
+impl Plugin for WorldPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<WorldMap>().add_event::<TilePlaced>();
+    }
+}
+
+pub struct TilePlaced;
 
 #[derive(Default, Resource)]
 pub struct WorldMap {
@@ -51,29 +61,50 @@ impl WorldMap {
         x: i32,
         y: i32,
         tile: Tile,
+        cmds: &mut Commands,
         ts: Res<TileServer>,
         mut query: Query<(&mut Tile, &mut Sprite, &mut Transform, &mut Handle<Image>)>,
+        mut tile_placed: EventWriter<TilePlaced>,
     ) {
         let entity = self.map.get(&(x, y)).expect("Tile does not exist");
         if let Some(e) = self.map.get(&(x + 1, y)) {
-            query.get_mut(*e).expect("Could not find entity").0.left = tile.right;
+            let mut t = query.get_mut(*e).expect("Could not find entity").0;
+            t.left = tile.right;
+            if !t.placed {
+                cmds.entity(*e).insert(OpenTile);
+            }
         }
         if let Some(e) = self.map.get(&(x - 1, y)) {
-            query.get_mut(*e).expect("Could not find entity").0.right = tile.left;
+            let mut t = query.get_mut(*e).expect("Could not find entity").0;
+            t.right = tile.left;
+            if !t.placed {
+                cmds.entity(*e).insert(OpenTile);
+            }
         }
         if let Some(e) = self.map.get(&(x, y + 1)) {
-            query.get_mut(*e).expect("Could not find entity").0.bottom = tile.top;
+            let mut t = query.get_mut(*e).expect("Could not find entity").0;
+            t.bottom = tile.top;
+            if !t.placed {
+                cmds.entity(*e).insert(OpenTile);
+            }
         }
         if let Some(e) = self.map.get(&(x, y - 1)) {
-            query.get_mut(*e).expect("Could not find entity").0.top = tile.bottom;
+            let mut t = query.get_mut(*e).expect("Could not find entity").0;
+            t.top = tile.bottom;
+            if !t.placed {
+                cmds.entity(*e).insert(OpenTile);
+            }
         }
         let (mut t, mut s, mut tr, mut h) =
             query.get_mut(*entity).expect("Could not find tile entity");
         assert!(tile.placeable(&t), "Could not place tile");
         let (img, rot) = ts.find_texture(&tile);
         *t = tile;
-        *h = img.clone();
+        t.placed = true;
+        *h = img;
         tr.rotate_z(rot);
         s.color = Color::WHITE;
+        cmds.entity(*entity).remove::<OpenTile>();
+        tile_placed.send(TilePlaced);
     }
 }

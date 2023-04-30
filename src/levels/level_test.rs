@@ -6,12 +6,12 @@ use crate::tile::Tile;
 use crate::world::{PlaceTile, WorldMap};
 use bevy::prelude::*;
 
-pub struct Level0Plugin;
+pub struct LevelPlugin;
 
-impl Plugin for Level0Plugin {
+impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(setup_deck.in_schedule(OnEnter(GameState::Level0)))
-            .add_system(move_camera.in_schedule(OnEnter(GameState::Level0)))
+        app.add_system(setup_deck.in_schedule(OnEnter(GameState::LevelTest)))
+            .add_system(move_camera.in_schedule(OnEnter(GameState::LevelTest)))
             .add_systems(
                 (
                     setup_board,
@@ -20,7 +20,7 @@ impl Plugin for Level0Plugin {
                     place_tiles,
                 )
                     .chain()
-                    .in_schedule(OnEnter(GameState::Level0)),
+                    .in_schedule(OnEnter(GameState::LevelTest)),
             );
     }
 }

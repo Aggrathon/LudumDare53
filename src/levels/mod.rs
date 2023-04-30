@@ -1,6 +1,9 @@
-mod level_0;
+mod level0;
+mod level1;
+mod level2;
+mod level_test;
 mod ui;
-
+use crate::camera::move_camera_to;
 use crate::deck::Deck;
 use crate::objective::ObjectiveTile;
 use crate::state::GameState;
@@ -12,7 +15,10 @@ pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugin(level_0::Level0Plugin);
+        app.add_plugin(level_test::LevelPlugin)
+            .add_plugin(level0::LevelPlugin)
+            .add_plugin(level1::LevelPlugin)
+            .add_plugin(level2::LevelPlugin);
 
         for d in GameState::variants() {
             if d != GameState::MainMenu {
@@ -41,7 +47,7 @@ fn clear_system(
     tiles: Query<Entity, With<Tile>>,
     ui: Query<Entity, With<ui::GameUI>>,
     obj: Query<Entity, With<ObjectiveTile>>,
-    mut camera: Query<&mut Transform, With<Camera>>,
+    camera: Query<&mut Transform, With<Camera>>,
 ) {
     for entity in &tiles {
         commands.entity(entity).despawn_recursive();
@@ -52,9 +58,7 @@ fn clear_system(
     for entity in &obj {
         commands.entity(entity).despawn_recursive();
     }
-    for mut tr in &mut camera {
-        tr.translation = Vec3::ZERO;
-    }
+    move_camera_to(camera, Vec2::ZERO);
     commands.insert_resource(WorldMap::default());
     commands.insert_resource(Deck::default());
 }

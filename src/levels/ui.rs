@@ -61,7 +61,7 @@ pub fn on_victory(
             .spawn((GameUI, container))
             .with_children(|p| {
                 p.spawn((NextButton, big_button())).with_children(|p| {
-                    p.spawn(big_button_text("Next level", font));
+                    p.spawn(big_button_text("Next level (N)", font));
                 });
             })
             .insert(BackgroundColor(Color::NONE).ease_to(

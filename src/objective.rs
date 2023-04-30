@@ -46,9 +46,6 @@ fn check_victory(
                     false
                 }
             });
-        dbg!(connected);
-        dbg!(query.is_empty());
-        dbg!(query.iter().count());
         if connected {
             victory.send(Victory);
         }

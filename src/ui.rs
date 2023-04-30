@@ -82,7 +82,7 @@ pub fn button_image() -> ButtonBundle {
 pub fn big_button() -> ButtonBundle {
     ButtonBundle {
         style: Style {
-            size: Size::new(Val::Px(300.), Val::Px(70.)),
+            size: Size::new(Val::Px(350.), Val::Px(80.)),
             align_items: AlignItems::Center,
             align_content: AlignContent::Center,
             justify_content: JustifyContent::Center,

@@ -27,6 +27,7 @@ impl Plugin for LevelPlugin {
                             ui::button_rotate,
                             ui::update_tile,
                             ui::on_rotate,
+                            ui::on_victory,
                         )
                             .in_set(OnUpdate(d)),
                     );
@@ -54,6 +55,6 @@ fn clear_system(
     for mut tr in &mut camera {
         tr.translation = Vec3::ZERO;
     }
-    commands.init_resource::<WorldMap>();
-    commands.init_resource::<Deck>();
+    commands.insert_resource(WorldMap::default());
+    commands.insert_resource(Deck::default());
 }

@@ -178,7 +178,7 @@ fn handle_open_tiles(
         }
         for (p, e) in &sel_query {
             if p.get() == *entity {
-                // cmds.entity(*entity).remove_children(e);
+                cmds.entity(*entity).remove_children(&[e]);
                 cmds.entity(e).despawn();
             }
         }

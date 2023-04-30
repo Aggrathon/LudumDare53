@@ -1,13 +1,16 @@
-use std::time::Duration;
-
-use bevy::prelude::*;
-use bevy_easings::*;
-
+use crate::colors;
 use crate::deck::{Deck, TopTileRotated};
+use crate::objective::Victory;
 use crate::state::GameState;
 use crate::tile::TileServer;
-use crate::ui::{button, button_image, button_text, container_border, container_column_end, image};
+use crate::ui::{
+    big_button, big_button_text, button, button_image, button_text, container_border,
+    container_column_end, container_full, image,
+};
 use crate::world::PlaceTile;
+use bevy::prelude::*;
+use bevy_easings::*;
+use std::time::Duration;
 
 #[derive(Component)]
 pub struct GameUI;
@@ -29,7 +32,7 @@ pub fn setup_gui(mut commands: Commands, asset_server: Res<AssetServer>) {
         .with_children(|p| {
             p.spawn(container_column_end()).with_children(|p| {
                 p.spawn((RestartButton, button())).with_children(|p| {
-                    p.spawn(button_text("Restart (R)", font.clone()));
+                    p.spawn(button_text("Reset (R)", font.clone()));
                 });
                 p.spawn((MenuButton, button())).with_children(|p| {
                     p.spawn(button_text("Menu (ESC)", font.clone()));
@@ -42,6 +45,33 @@ pub fn setup_gui(mut commands: Commands, asset_server: Res<AssetServer>) {
                 });
             });
         });
+}
+
+pub fn on_victory(
+    mut commands: Commands,
+    event: EventReader<Victory>,
+    asset_server: Res<AssetServer>,
+) {
+    if !event.is_empty() {
+        let font = asset_server.load("Bungee-Regular.ttf");
+        let mut container = container_full();
+        container.style.position = UiRect::all(Val::Px(0.));
+        container.style.position_type = PositionType::Absolute;
+        commands
+            .spawn((GameUI, container))
+            .with_children(|p| {
+                p.spawn((NextButton, big_button())).with_children(|p| {
+                    p.spawn(big_button_text("Next level", font));
+                });
+            })
+            .insert(BackgroundColor(Color::NONE).ease_to(
+                colors::bright().into(),
+                EaseFunction::CubicIn,
+                EasingType::Once {
+                    duration: Duration::from_millis(1000),
+                },
+            ));
+    }
 }
 
 pub fn update_tile(

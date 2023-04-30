@@ -1,8 +1,7 @@
-use crate::camera::ease_camera_to;
 use crate::deck::Deck;
 use crate::state::GameState;
-use crate::tile::{Tile, TileServer};
-use crate::world::{TilePlaced, WorldMap};
+use crate::tile::Tile;
+use crate::world::{PlaceTile, WorldMap};
 use bevy::prelude::*;
 
 pub struct Level0Plugin;
@@ -39,23 +38,19 @@ fn setup_board(mut cmds: Commands, mut wm: ResMut<WorldMap>) {
     wm.remove_tile(2, 3, &mut cmds);
 }
 
-fn place_tile(
-    mut cmds: Commands,
-    wm: Res<WorldMap>,
-    ts: Res<TileServer>,
-    query: Query<(&mut Tile, &mut Sprite, &mut Transform, &mut Handle<Image>)>,
-    tile_placed: EventWriter<TilePlaced>,
-) {
+fn place_tile(mut tile_placed: EventWriter<PlaceTile>) {
     let tile = Tile::create("lr");
-    wm.set_tile(0, 0, tile, &mut cmds, ts, query, tile_placed);
+    tile_placed.send(PlaceTile::new(0, 0, tile));
 }
 
-fn move_camera(commands: Commands, query: Query<(&Transform, Entity), With<Camera>>) {
-    ease_camera_to(commands, query, Vec3::new(2., 4., 0.));
+fn move_camera(mut query: Query<&mut Transform, With<Camera>>) {
+    for mut tr in &mut query {
+        tr.translation = Vec3::new(2., 4., 0.);
+    }
 }
 
 fn setup_deck(mut deck: ResMut<Deck>) {
     deck.add_all_tiles();
-    deck.add_to_pile(Tile::create("lr"), 0.);
+    deck.add_to_pile(Tile::create("lr"));
     deck.fill_pile(100, 42);
 }

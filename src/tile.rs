@@ -1,4 +1,6 @@
+use crate::camera::cursor_to_world;
 use crate::colors;
+use crate::deck::Deck;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use std::f32::consts::PI;
@@ -19,10 +21,6 @@ pub enum Border {
     Empty,
     Road,
 }
-
-#[derive(Component)]
-#[component(storage = "SparseSet")]
-pub struct OpenTile;
 
 impl Tile {
     pub fn has_road(&self) -> bool {
@@ -140,6 +138,64 @@ impl TileBundle {
     }
 }
 
+#[derive(Component, Default)]
+pub struct SelectTile {}
+
+#[derive(Bundle)]
+pub struct SelectTileBundle {
+    tile: SelectTile,
+    sprite: SpriteBundle,
+}
+
+impl SelectTileBundle {
+    pub fn new(asset_server: &Res<AssetServer>) -> Self {
+        let sprite = Sprite {
+            color: colors::yellow(),
+            custom_size: Some(Vec2 { x: 1., y: 1. }),
+            ..default()
+        };
+        let texture = asset_server.load("plus.png");
+        Self {
+            tile: SelectTile::default(),
+            sprite: SpriteBundle {
+                sprite,
+                texture,
+                ..default()
+            },
+        }
+    }
+}
+
+fn update_select_tile(
+    deck: Res<Deck>,
+    mut query: Query<(&mut Sprite, &Parent, &GlobalTransform), With<SelectTile>>,
+    tile_query: Query<&Tile>,
+    windows: Query<&Window>,
+    cameras: Query<(&Camera, &GlobalTransform), With<Camera>>,
+) {
+    let normal = colors::yellow();
+    let hover = colors::orange();
+    let disabled = colors::dark_green();
+    if let Some(tile) = deck.get_top() {
+        let cursor = cursor_to_world(windows, cameras).unwrap_or(Vec2 {
+            x: f32::MAX,
+            y: f32::MAX,
+        });
+        for (mut s, p, tr) in query.iter_mut() {
+            let t = tile_query.get(p.get()).expect("Could not find parent");
+            if tile.placeable(t) {
+                if (tr.translation().truncate() - cursor).abs().max_element() < 0.5 {
+                    s.color = hover;
+                } else {
+                    s.color = normal;
+                }
+            } else {
+                s.color = disabled;
+            }
+        }
+    }
+}
+
 #[derive(Resource, Default)]
 pub struct TileServer(HashMap<u32, Handle<Image>>);
 
@@ -180,6 +236,7 @@ pub struct TilePlugin;
 impl Plugin for TilePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<TileServer>()
-            .add_startup_system(TileServer::load_assets);
+            .add_startup_system(TileServer::load_assets)
+            .add_system(update_select_tile);
     }
 }

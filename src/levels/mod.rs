@@ -25,6 +25,7 @@ impl Plugin for LevelPlugin {
                             ui::button_restart,
                             ui::button_rotate,
                             ui::update_tile,
+                            ui::on_rotate,
                         )
                             .in_set(OnUpdate(d)),
                     );

@@ -56,9 +56,11 @@ pub struct WorldMap {
 
 impl WorldMap {
     pub fn create_tile(&mut self, x: i32, y: i32, cmds: &mut Commands) -> Entity {
-        let cmd = cmds.spawn(tile::TileBundle::new(x, y));
-        self.map.insert((x, y), cmd.id());
-        cmd.id()
+        let entity = cmds.spawn(tile::TileBundle::new(x, y)).id();
+        self.map
+            .insert((x, y), entity)
+            .map_or((), |e| cmds.entity(e).despawn());
+        entity
     }
 
     pub fn remove_tile(&mut self, x: i32, y: i32, cmds: &mut Commands) -> bool {

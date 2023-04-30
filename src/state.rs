@@ -7,6 +7,7 @@ pub enum GameState {
     Level0,
     Level1,
     Level2,
+    Level3,
     LevelTest,
 }
 
@@ -16,7 +17,8 @@ impl GameState {
             GameState::MainMenu => GameState::Level0,
             GameState::Level0 => GameState::Level1,
             GameState::Level1 => GameState::Level2,
-            GameState::Level2 => GameState::MainMenu,
+            GameState::Level2 => GameState::Level3,
+            GameState::Level3 => GameState::MainMenu,
             _ => GameState::MainMenu,
         }
     }

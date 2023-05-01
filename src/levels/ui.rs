@@ -85,8 +85,7 @@ pub fn update_tile(
             if let Some(tile) = deck.get_top() {
                 let (img2, rot) = ts.find_texture(tile);
                 img.texture = img2;
-                tr.rotation = Quat::from_rotation_z(rot);
-                // TODO sometimes the rotation is incorrect
+                tr.rotation = Quat::from_rotation_z(-rot);
             }
         }
     }

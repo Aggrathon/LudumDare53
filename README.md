@@ -6,7 +6,7 @@ My entry to the 53:rd Ludum Dare game jam (theme: *Delivery*), following the com
 
 [Play the game in Your browser](https://aggrathon.github.io/LudumDare53/) or [check out the Ludum Dare entry](https://ldjam.com/events/ludum-dare/53/tilers-trucking-co)!
 
-![Screenshot](assets/screenshot.png)
+![Screenshot](screenshot.png)
 
 ## Software Used
 
